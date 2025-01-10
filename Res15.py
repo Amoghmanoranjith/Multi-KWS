@@ -1,24 +1,15 @@
-"""
-@property
-    @add_port_docs()
+""""
     def input_ports(self):
-        """Returns definitions of module input ports.
-        """
         return {
             "audio_signal": NeuralType(('B', 'D', 'T'), SpectrogramType()),
             "length": NeuralType(tuple('B'), LengthsType()),
         }
 
-    @property
-    @add_port_docs()
     def output_ports(self):
-        """Returns definitions of module output ports.
-        """
-        return {
             "outputs": NeuralType(('B', 'D', 'T'), AcousticEncodedRepresentation()),
             "encoded_lengths": NeuralType(tuple('B'), LengthsType()),
         }
-'''''
+""""
 import torch
 from torch import nn
 from torch.nn import functional as F
