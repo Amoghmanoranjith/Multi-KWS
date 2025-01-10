@@ -1,86 +1,79 @@
-import torch
-from torch.utils.data import Dataset
-import torchaudio
+import os
 import json
+from typing import List, Union, Optional, Dict, Any
+import torch
+from torch.utils.data import Dataset, DataLoader
+import torchaudio
 
-class AudioLabelDataset(Dataset):
+class SpeechLabelDataset(Dataset):
     """
-    PyTorch Dataset for loading audio files and their corresponding labels.
-
-    Args:
-        manifest_filepath (str): Path to the manifest JSON file.
-        labels (list): List of possible labels.
-        featurizer (callable): A callable object to process raw audio into features (e.g., Mel Spectrogram).
-        max_duration (float, optional): Maximum duration of audio to include in the dataset.
-        min_duration (float, optional): Minimum duration of audio to include in the dataset.
-        trim (bool, optional): Whether to trim silence from the audio files.
-        load_audio (bool, optional): Whether to load audio or just return labels.
+    A simple dataset for loading audio files and their corresponding labels
+    based on a manifest file.
     """
 
-    def __init__(
-        self,
-        manifest_filepath,
-        labels,
-        featurizer,
-        max_duration=None,
-        min_duration=None,
-        trim=False,
-        load_audio=True,
-    ):
-        # Load and filter the manifest
-        with open(manifest_filepath, "r") as f:
-            data = [json.loads(line.strip()) for line in f]
-        
-        self.samples = []
-        for sample in data:
-            duration = sample.get("duration", None)
-            if (min_duration is not None and duration < min_duration) or \
-               (max_duration is not None and duration > max_duration):
-                continue
-            self.samples.append(sample)
+    def __init__(self, manifest_filepath: Union[str, List[str]], labels: List[str], sample_rate: int = 16000):
+        """
+        Args:
+            manifest_filepath: Path to a JSON manifest file or a list of them.
+            labels: List of label names.
+            sample_rate: Target sample rate for audio files.
+        """
+        if isinstance(manifest_filepath, str):
+            manifest_filepath = [manifest_filepath]
 
-        self.featurizer = featurizer
-        self.trim = trim
-        self.load_audio = load_audio
+        self.items = []
+        for file in manifest_filepath:
+            with open(file, 'r') as f:
+                self.items.extend(json.loads(line) for line in f)
 
-        # Prepare label mappings
-        self.labels = labels
         self.label2id = {label: idx for idx, label in enumerate(labels)}
-        self.id2label = {idx: label for idx, label in enumerate(labels)}
+        self.sample_rate = sample_rate
 
     def __len__(self):
-        return len(self.samples)
+        return len(self.items)
 
-    def __getitem__(self, index):
-        sample = self.samples[index]
-        audio_filepath = sample["audio_filepath"]
-        label = sample["label"]
-        offset = sample.get("offset", 0)
-        duration = sample.get("duration", None)
+    def __getitem__(self, idx):
+        item = self.items[idx]
 
-        # Load and preprocess audio
-        if self.load_audio:
-            waveform, sample_rate = torchaudio.load(audio_filepath)
-            
-            # Apply offset and duration
-            if offset > 0 or duration is not None:
-                start_frame = int(offset * sample_rate)
-                end_frame = int((offset + duration) * sample_rate) if duration else None
-                waveform = waveform[:, start_frame:end_frame]
+        # Load audio file
+        audio_path = os.path.expanduser(item['audio_filepath'])
+        waveform, sr = torchaudio.load(audio_path)
 
-            # Trim silence if enabled
-            if self.trim:
-                waveform, _ = torchaudio.transforms.Vad(sample_rate=sample_rate)(waveform)
+        # Resample if needed
+        if sr != self.sample_rate:
+            waveform = torchaudio.transforms.Resample(orig_freq=sr, new_freq=self.sample_rate)(waveform)
 
-            # Convert waveform to features
-            features = self.featurizer(waveform)
-            feature_length = features.shape[-1]
-        else:
-            features = None
-            feature_length = 0
+        # Fetch label
+        label = self.label2id[item['label']]
 
-        # Convert label to ID
-        label_id = self.label2id[label]
+        # Optionally include duration (if needed)
+        return waveform, torch.tensor(label)
 
-        return features, feature_length, torch.tensor(label_id).long()
+def collate_fn(batch):
+    """
+    Collate function to pad audio signals to the same length.
+    """
+    waveforms, labels = zip(*batch)
+    lengths = torch.tensor([w.size(1) for w in waveforms])
+    padded_waveforms = torch.nn.utils.rnn.pad_sequence([w.t() for w in waveforms], batch_first=True).permute(0, 2, 1)
+    return padded_waveforms, lengths, torch.tensor(labels)
 
+def get_dataloader(
+    manifest_filepath: Union[str, List[str]],
+    labels: List[str],
+    batch_size: int,
+    shuffle: bool = True,
+    num_workers: int = 0,
+    sample_rate: int = 16000,
+):
+    """
+    Create a DataLoader for the SpeechLabelDataset.
+    """
+    dataset = SpeechLabelDataset(manifest_filepath, labels, sample_rate)
+    return DataLoader(
+        dataset,
+        batch_size=batch_size,
+        shuffle=shuffle,
+        num_workers=num_workers,
+        collate_fn=collate_fn,
+    )
