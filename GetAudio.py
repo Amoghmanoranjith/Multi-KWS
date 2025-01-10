@@ -44,7 +44,7 @@ class SpeechLabelDataset(Dataset):
             waveform = torchaudio.transforms.Resample(orig_freq=sr, new_freq=self.sample_rate)(waveform)
 
         # Fetch label
-        label = self.label2id[item['label']]
+        label = self.label2id[item['command']]
 
         # Optionally include duration (if needed)
         return waveform, torch.tensor(label)
