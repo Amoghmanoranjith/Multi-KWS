@@ -30,9 +30,11 @@ def prepare_wav(waveform, sample_rate):
 
 
 class SubsetSC(SPEECHCOMMANDS):
-    def __init__(self, subset: str, path="./"):
+    def __init__(self, subset: str, path="./", MelParams = None):
         super().__init__(path, download=True)
-        self.to_mel = transforms.MelSpectrogram(sample_rate=SAMPLE_RATE, n_fft=512, f_max=8000, n_mels=64, win_length = 0.025, hop_length = 0.01)
+        self.to_mel = transforms.MelSpectrogram(sample_rate=SAMPLE_RATE, n_fft=512, f_max=8000, n_mels=64)
+        if MelParams:
+             self.to_mel = transforms.MelSpectrogram(**MelParams)
         self.subset = subset
 
         def load_list(filename):
