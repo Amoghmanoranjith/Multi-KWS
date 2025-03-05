@@ -81,3 +81,10 @@ class Decoder(nn.Module):
     def forward(self, x):
         x = self.fc1(self.nonlinear(torch.flatten(x, start_dim = -2)))
         return x
+
+class Regularizer(nn.Module):
+    def __init__(self):
+        super().__init__()
+    def forward(self, x):
+        with torch.inference_mode():
+            return F.normalize(x, p=2, dim=-1)
