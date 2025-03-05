@@ -58,7 +58,7 @@ class SubsetSC(SPEECHCOMMANDS):
             noise_paths = [w for w in os.listdir(os.path.join(self._path, "_background_noise_")) if w.endswith(".wav")]
             for item in noise_paths:
                 noise_path =  os.path.join(self._path, "_background_noise_", item)
-                noise_waveform, noise_sr = torchaudio.sox_effects.apply_effects_file(noise_path, effects=[])
+                noise_waveform, noise_sr = torchaudio.load(noise_path)
                 noise_waveform = transforms.Resample(orig_freq=noise_sr, new_freq=SAMPLE_RATE)(noise_waveform)
                 self._noise.append(noise_waveform)
         else:
