@@ -1,73 +1,72 @@
-""""
-    def input_ports(self):
-        return {
-            "audio_signal": NeuralType(('B', 'D', 'T'), SpectrogramType()),
-            "length": NeuralType(tuple('B'), LengthsType()),
-        }
-
-    def output_ports(self):
-            "outputs": NeuralType(('B', 'D', 'T'), AcousticEncodedRepresentation()),
-            "encoded_lengths": NeuralType(tuple('B'), LengthsType()),
-        }
-""""
 import torch
 from torch import nn
 from torch.nn import functional as F
 
 class Res15(nn.Module):
     def __init__(self, n_maps):
-        """
-        Args:
-            n_maps (int): Number of feature maps (channels) for the convolutional layers.
-        """
-        super(Res15, self).__init__()
+        super().__init__()
         self.n_maps = n_maps
-        self.conv0 = nn.Conv2d(1, n_maps, (3, 3), padding=(1, 1), bias=False)
-        self.n_layers = n_layers = 13
         self.dilation = True
-
-        # Create convolutional layers
-        self.convs = nn.ModuleList()
-        self.bns = nn.ModuleList()
-        for i in range(n_layers):
-            dilation_rate = int(2 ** (i // 3)) if self.dilation else 1
-            padding = dilation_rate if self.dilation else 1
-            self.convs.append(nn.Conv2d(n_maps, n_maps, (3, 3), padding=padding, dilation=dilation_rate, bias=False))
-            self.bns.append(nn.BatchNorm2d(n_maps, affine=False))
-
-    def forward(self, audio_signal, length=None):
-        """
-        Forward pass for the Res15 model.
-
-        Args:
-            audio_signal (Tensor): Input tensor of shape (batch_size, time_steps, features).
-            length (Tensor, optional): Tensor representing lengths of input sequences.
-
-        Returns:
-            Tensor: Output embeddings of shape (batch_size, n_maps, 1).
-            Tensor: Lengths tensor (unchanged from input).
-        """
-        # Add channel dimension
-        x = audio_signal.unsqueeze(1)
-
-        old_x = None
-        for i in range(self.n_layers + 1):
-            if i == 0:
-                y = F.relu(self.conv0(x))
-                if hasattr(self, "pool"):
-                    y = self.pool(y)
-                old_x = y
-            else:
-                y = F.relu(self.convs[i - 1](x))
-                y = self.bns[i - 1](y)
-                if i > 0 and i % 2 == 0:
-                    x = y + old_x  # Residual connection
-                    old_x = x
-                else:
-                    x = y
-
-        # Reshape and average across time dimension
-        x = x.view(x.size(0), x.size(1), -1)  # Shape: (batch, feats, time)
-        x = torch.mean(x, dim=2)  # Global average pooling
-
-        return x.unsqueeze(-2), length
+        self.n_layers = 13
+        self.conv0 = nn.Conv2d(in_channels = 1, out_channels = n_maps, kernel_size = 3, padding=1, dilation=1,bias=False)
+        self.conv1 = nn.Conv2d(in_channels = 45, out_channels = n_maps, kernel_size = 3, padding=1, dilation=1,bias=False)
+        self.bn1 = nn.BatchNorm2d(n_maps, affine=False)
+        self.conv2 = nn.Conv2d(in_channels = 45, out_channels = n_maps, kernel_size = 3, padding=1, dilation=1,bias=False)
+        self.bn2 = nn.BatchNorm2d(n_maps, affine=False)
+        self.conv3 = nn.Conv2d(in_channels = 45, out_channels = n_maps, kernel_size = 3, padding=2, dilation=2,bias=False)
+        self.bn3 = nn.BatchNorm2d(n_maps, affine=False)
+        self.conv4 = nn.Conv2d(in_channels = 45, out_channels = n_maps, kernel_size = 3, padding=2, dilation=2,bias=False)
+        self.bn4 = nn.BatchNorm2d(n_maps, affine=False)
+        self.conv5 = nn.Conv2d(in_channels = 45, out_channels = n_maps, kernel_size = 3, padding=2, dilation=2,bias=False)
+        self.bn5 = nn.BatchNorm2d(n_maps, affine=False)
+        self.conv6 = nn.Conv2d(in_channels = 45, out_channels = n_maps, kernel_size = 3, padding=4, dilation=4,bias=False)
+        self.bn6 = nn.BatchNorm2d(n_maps, affine=False)
+        self.conv7 = nn.Conv2d(in_channels = 45, out_channels = n_maps, kernel_size = 3, padding=4, dilation=4,bias=False)
+        self.bn7 = nn.BatchNorm2d(n_maps, affine=False)
+        self.conv8 = nn.Conv2d(in_channels = 45, out_channels = n_maps, kernel_size = 3, padding=4, dilation=4,bias=False)
+        self.bn8 = nn.BatchNorm2d(n_maps, affine=False)
+        self.conv9 = nn.Conv2d(in_channels = 45, out_channels = n_maps, kernel_size = 3, padding=8, dilation=8,bias=False)
+        self.bn9 = nn.BatchNorm2d(n_maps, affine=False)
+        self.conv10 = nn.Conv2d(in_channels = 45, out_channels = n_maps, kernel_size = 3, padding=8, dilation=8,bias=False)
+        self.bn10 = nn.BatchNorm2d(n_maps, affine=False)
+        self.conv11 = nn.Conv2d(in_channels = 45, out_channels = n_maps, kernel_size = 3, padding=8, dilation=8,bias=False)
+        self.bn11 = nn.BatchNorm2d(n_maps, affine=False)
+        self.conv12 = nn.Conv2d(in_channels = 45, out_channels = n_maps, kernel_size = 3, padding=16, dilation=16,bias=False)
+        self.bn12 = nn.BatchNorm2d(n_maps, affine=False)
+        self.conv13 = nn.Conv2d(in_channels = 45, out_channels = n_maps, kernel_size = 3, padding=16, dilation=16,bias=False)
+        self.bn13 = nn.BatchNorm2d(n_maps, affine=False)
+        self.relu = nn.ReLU()
+    def forward(self, x):
+        x = self.relu(self.conv0(x))
+        old_x = x
+        # print(x.shape)
+        x = self.relu(self.conv2(self.bn1(self.relu(self.conv1(x))))) + old_x
+        old_x = x
+        # print(x.shape)
+        x = self.bn2(x)
+        x = self.relu(self.conv4(self.bn3(self.relu(self.conv3(x))))) + old_x
+        old_x = x
+        # print(x.shape)
+        x = self.bn4(x)
+        x = self.relu(self.conv6(self.bn5(self.relu(self.conv5(x))))) + old_x
+        old_x = x
+        # print(x.shape)
+        x = self.bn6(x)
+        x = self.relu(self.conv8(self.bn7(self.relu(self.conv7(x))))) + old_x
+        old_x = x
+        # print(x.shape)
+        x = self.bn8(x)
+        x = self.relu(self.conv10(self.bn9(self.relu(self.conv9(x))))) + old_x
+        old_x = x
+        # print(x.shape)
+        x = self.bn10(x)
+        x = self.relu(self.conv12(self.bn11(self.relu(self.conv11(x))))) + old_x
+        old_x = x
+        # print(x.shape)
+        x = self.bn12(x)
+        x = self.bn13(self.relu(self.conv13(x)))
+        # print(x.shape)
+        x = x.view(x.size(0), x.size(1), -1)  # shape: (batch, feats, o3)
+        x = torch.mean(x, 2)
+        x = x.unsqueeze(-2)
+        return x
