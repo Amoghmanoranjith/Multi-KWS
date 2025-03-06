@@ -28,7 +28,7 @@ def get_size(model:nn.Module):
              total_size += model.state_dict()[i].shape.numel()
      total_size *= 4
      total_size /= 1e6
-     print(f"encoder size: {total_size} MB")
+     print(f"model size: {total_size} MB")
 
 def prepare_wav(waveform, sample_rate):
     if sample_rate != SAMPLE_RATE: 
