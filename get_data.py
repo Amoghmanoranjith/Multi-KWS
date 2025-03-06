@@ -19,6 +19,16 @@ DEFAULT_LABELS = ['visual', 'wow', 'learn', 'backward', 'dog', 'two', 'left', 'h
 
 N_CLASS = len(DEFAULT_LABELS)
 
+def get_size(model:nn.Module):
+     keys = model.state_dict().keys()
+     total_size = 0
+     for i in keys:
+         if model.state_dict()[i].shape:
+             # print(torch.tensor(model.state_dict()[i].shape))
+             total_size += model.state_dict()[i].shape.numel()
+     total_size *= 4
+     total_size /= 1e6
+     print(f"encoder size: {total_size} MB")
 
 def prepare_wav(waveform, sample_rate):
     if sample_rate != SAMPLE_RATE: 
