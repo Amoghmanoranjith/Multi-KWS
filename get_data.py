@@ -19,7 +19,7 @@ DEFAULT_LABELS = ['visual', 'wow', 'learn', 'backward', 'dog', 'two', 'left', 'h
 
 N_CLASS = len(DEFAULT_LABELS)
 
-def get_size(model:nn.Module):
+def get_size(model):
      keys = model.state_dict().keys()
      total_size = 0
      for i in keys:
