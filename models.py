@@ -3,37 +3,37 @@ from torch import nn
 from torch.nn import functional as F
 
 class Res15(nn.Module):
-    def __init__(self, n_maps):
+    def __init__(self, n_maps, inp):
         super().__init__()
         self.n_maps = n_maps
         self.dilation = True
         self.n_layers = 13
-        self.conv0 = nn.Conv2d(in_channels = 1, out_channels = n_maps, kernel_size = 3, padding=1, dilation=1,bias=False)
-        self.conv1 = nn.Conv2d(in_channels = 45, out_channels = n_maps, kernel_size = 3, padding=1, dilation=1,bias=False)
+        self.conv0 = nn.Conv2d(in_channels = inp, out_channels = n_maps, kernel_size = 3, padding=1, dilation=1,bias=False)
+        self.conv1 = nn.Conv2d(in_channels = n_maps, out_channels = n_maps, kernel_size = 3, padding=1, dilation=1,bias=False)
         self.bn1 = nn.BatchNorm2d(n_maps, affine=False)
-        self.conv2 = nn.Conv2d(in_channels = 45, out_channels = n_maps, kernel_size = 3, padding=1, dilation=1,bias=False)
+        self.conv2 = nn.Conv2d(in_channels = n_maps, out_channels = n_maps, kernel_size = 3, padding=1, dilation=1,bias=False)
         self.bn2 = nn.BatchNorm2d(n_maps, affine=False)
-        self.conv3 = nn.Conv2d(in_channels = 45, out_channels = n_maps, kernel_size = 3, padding=2, dilation=2,bias=False)
+        self.conv3 = nn.Conv2d(in_channels = n_maps, out_channels = n_maps, kernel_size = 3, padding=2, dilation=2,bias=False)
         self.bn3 = nn.BatchNorm2d(n_maps, affine=False)
-        self.conv4 = nn.Conv2d(in_channels = 45, out_channels = n_maps, kernel_size = 3, padding=2, dilation=2,bias=False)
+        self.conv4 = nn.Conv2d(in_channels = n_maps, out_channels = n_maps, kernel_size = 3, padding=2, dilation=2,bias=False)
         self.bn4 = nn.BatchNorm2d(n_maps, affine=False)
-        self.conv5 = nn.Conv2d(in_channels = 45, out_channels = n_maps, kernel_size = 3, padding=2, dilation=2,bias=False)
+        self.conv5 = nn.Conv2d(in_channels = n_maps, out_channels = n_maps, kernel_size = 3, padding=2, dilation=2,bias=False)
         self.bn5 = nn.BatchNorm2d(n_maps, affine=False)
-        self.conv6 = nn.Conv2d(in_channels = 45, out_channels = n_maps, kernel_size = 3, padding=4, dilation=4,bias=False)
+        self.conv6 = nn.Conv2d(in_channels = n_maps, out_channels = n_maps, kernel_size = 3, padding=4, dilation=4,bias=False)
         self.bn6 = nn.BatchNorm2d(n_maps, affine=False)
-        self.conv7 = nn.Conv2d(in_channels = 45, out_channels = n_maps, kernel_size = 3, padding=4, dilation=4,bias=False)
+        self.conv7 = nn.Conv2d(in_channels = n_maps, out_channels = n_maps, kernel_size = 3, padding=4, dilation=4,bias=False)
         self.bn7 = nn.BatchNorm2d(n_maps, affine=False)
-        self.conv8 = nn.Conv2d(in_channels = 45, out_channels = n_maps, kernel_size = 3, padding=4, dilation=4,bias=False)
+        self.conv8 = nn.Conv2d(in_channels = n_maps, out_channels = n_maps, kernel_size = 3, padding=4, dilation=4,bias=False)
         self.bn8 = nn.BatchNorm2d(n_maps, affine=False)
-        self.conv9 = nn.Conv2d(in_channels = 45, out_channels = n_maps, kernel_size = 3, padding=8, dilation=8,bias=False)
+        self.conv9 = nn.Conv2d(in_channels = n_maps, out_channels = n_maps, kernel_size = 3, padding=8, dilation=8,bias=False)
         self.bn9 = nn.BatchNorm2d(n_maps, affine=False)
-        self.conv10 = nn.Conv2d(in_channels = 45, out_channels = n_maps, kernel_size = 3, padding=8, dilation=8,bias=False)
+        self.conv10 = nn.Conv2d(in_channels = n_maps, out_channels = n_maps, kernel_size = 3, padding=8, dilation=8,bias=False)
         self.bn10 = nn.BatchNorm2d(n_maps, affine=False)
-        self.conv11 = nn.Conv2d(in_channels = 45, out_channels = n_maps, kernel_size = 3, padding=8, dilation=8,bias=False)
+        self.conv11 = nn.Conv2d(in_channels = n_maps, out_channels = n_maps, kernel_size = 3, padding=8, dilation=8,bias=False)
         self.bn11 = nn.BatchNorm2d(n_maps, affine=False)
-        self.conv12 = nn.Conv2d(in_channels = 45, out_channels = n_maps, kernel_size = 3, padding=16, dilation=16,bias=False)
+        self.conv12 = nn.Conv2d(in_channels = n_maps, out_channels = n_maps, kernel_size = 3, padding=16, dilation=16,bias=False)
         self.bn12 = nn.BatchNorm2d(n_maps, affine=False)
-        self.conv13 = nn.Conv2d(in_channels = 45, out_channels = n_maps, kernel_size = 3, padding=16, dilation=16,bias=False)
+        self.conv13 = nn.Conv2d(in_channels = n_maps, out_channels = n_maps, kernel_size = 3, padding=16, dilation=16,bias=False)
         self.bn13 = nn.BatchNorm2d(n_maps, affine=False)
         self.relu = nn.ReLU()
     def forward(self, x):
