@@ -1,1 +1,1 @@
-MultiKWS for prism
+Unofficial repo for MultiKWS-RVQ for prism
