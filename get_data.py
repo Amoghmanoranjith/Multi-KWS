@@ -40,8 +40,9 @@ def prepare_wav(waveform, sample_rate):
 
 
 class SubsetSC(SPEECHCOMMANDS):
-    def __init__(self, subset: str, path="./", MelParams = None):
+    def __init__(self, subset: str, path="./", mode = 'mel', MelParams = None):
         super().__init__(path, download=True)
+        self.mode = mode
         self.to_mel = transforms.MelSpectrogram(sample_rate=SAMPLE_RATE, n_fft=512, f_max=8000, n_mels=64)
         if MelParams:
              self.to_mel = transforms.MelSpectrogram(**MelParams)
@@ -115,6 +116,8 @@ class SubsetSC(SPEECHCOMMANDS):
         if sample_rate != SAMPLE_RATE: 
             resampler = transforms.Resample(orig_freq=sample_rate, new_freq=SAMPLE_RATE)
             waveform = resampler(waveform)
+        if self.mode == 'raw':
+             return waveform, label
         if self.subset == "training":
             waveform = self._augment(waveform)
         log_mel = (self.to_mel(waveform) + EPS).log2()
