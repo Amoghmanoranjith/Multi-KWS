@@ -43,7 +43,20 @@ class SubsetSC(SPEECHCOMMANDS):
     def __init__(self, subset: str, path="./", mode = 'mel', MelParams = None):
         super().__init__(path, download=True)
         self.mode = mode
-        self.to_mel = transforms.MelSpectrogram(sample_rate=SAMPLE_RATE, n_fft=512, f_max=8000, n_mels=64)
+         
+        self.melkwargs={
+        'n_fft': 480,                      # window_size
+        'hop_length': 160,                # stride
+        'n_mels': 80,                     # filterbank_channel_count
+        'f_min': 20,                      # lower_frequency_limit
+        'f_max': 7600,                    # upper_frequency_limit
+        'power': 1.0,                     # magnitude_squared = False
+        'mel_scale': 'htk'}
+        self.to_mel = transforms.MFCC(
+                  sample_rate=16000,
+                  n_mfcc=40,
+                  log_mels = True,
+                  melkwargs=melkwargs)
         if MelParams:
              self.to_mel = transforms.MelSpectrogram(**MelParams)
         self.subset = subset
@@ -91,11 +104,13 @@ class SubsetSC(SPEECHCOMMANDS):
 
         snr = math.exp(snr / 10)
         scale = snr * noise_power / signal_power
+        noise_waveform  = 0.1 * noise_waveform
         noisy_signal = (scale * waveform + noise_waveform) / 2
         return noisy_signal
 
     def _shift_augment(self, waveform):
-        shift = random.randint(-1600, 1600)
+         # change this according to time shift metric
+        shift = random.randint(-100, 100)
         waveform = torch.roll(waveform, shift)
         if shift > 0:
             waveform[0][:shift] = 0
@@ -108,7 +123,6 @@ class SubsetSC(SPEECHCOMMANDS):
             waveform = self._noise_augment(waveform)
         
         waveform = self._shift_augment(waveform)
-
         return waveform
 
     def __getitem__(self, n):
