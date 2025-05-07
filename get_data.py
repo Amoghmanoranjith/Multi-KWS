@@ -56,7 +56,7 @@ class SubsetSC(SPEECHCOMMANDS):
                   sample_rate=16000,
                   n_mfcc=40,
                   log_mels = True,
-                  melkwargs=melkwargs)
+                  melkwargs=self.melkwargs)
         if MelParams:
              self.to_mel = transforms.MelSpectrogram(**MelParams)
         self.subset = subset
