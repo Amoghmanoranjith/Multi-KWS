@@ -1995,7 +1995,7 @@ class AttentionLayers(Module):
         data_dependent_alibi = attn_kwargs.get('data_dependent_alibi', False)
 
         assert len(kwargs) == 0, f'unrecognized kwargs passed in {kwargs.keys()}'
-        self.seelctive_attn = True
+        self.selective_attn = selective_attn
         self.dim = dim
         self.causal = causal
         self.layers = ModuleList([])
