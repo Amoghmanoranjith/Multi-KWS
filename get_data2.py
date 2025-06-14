@@ -113,13 +113,13 @@ class SpeechCommand(Dataset):
   based on mode spec augmentation is applied
   before
   """
-  def __init__(self, root_dir, subset, mode, ver):
+  def __init__(self, root_dir, noise_dir, subset, mode, augment, ver):
     self.data_list, self.labels = ScanAudioFiles(root_dir, ver)
     self.mode = mode
     self.subset = subset
     self.ver = ver
-    noise_dir = os.path.dirname(root_dir)
-    self.noise_dir = os.path.join(noise_dir, "_background_noise_")
+    self.augment = augment
+    self.noise_dir = noise_dir
     self._noise = []
 
     # load all the noise waveforms for adding to the background
@@ -143,7 +143,7 @@ class SpeechCommand(Dataset):
     'time_mask': 25,
     'num_time_mask': 2,
     'num_freq_mask': 2
-    } if subset == "training" else None
+    } if augment else None
     if mode == "mfcc":
         self.to_mel = MFCC(
               sample_rate=16000,
@@ -163,12 +163,12 @@ class SpeechCommand(Dataset):
     audio_path = self.data_list[idx]
     sample, sample_rate = torchaudio.load(audio_path)
     label = self.labels[idx]
-    # add background sound
 
     if sample_rate != SAMPLE_RATE:
       resampler = transforms.Resample(orig_freq=sample_rate, new_freq=SAMPLE_RATE)
       waveform = resampler(waveform)
-    if self.subset == "training":
+    if self.augment:
+        # add background sound
       sample = self._noise_augment(sample, foreground_volume = 1.0, background_volume = 0.1)
       sample = self._shift_augment(sample)
     if self.mode == "raw":
@@ -332,5 +332,4 @@ def _load_data(ver, download = True):
     valid_dir = "%s/valid_12class" % base_dir
     noise_dir = "%s/_background_noise_" % base_dir
 
-    return train_dir, test_dir, valid_dir
-
+    return train_dir, test_dir, valid_dir, noise_dir
