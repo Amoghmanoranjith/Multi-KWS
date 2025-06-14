@@ -168,7 +168,7 @@ class SpeechCommand(Dataset):
       waveform = resampler(waveform)
     if self.augment:
         # add background sound
-      sample = self._noise_augment(sample, foreground_volume = 1.0, background_volume = 0.1)
+      sample = self._noise_augment(sample, foreground_volume = 1.0, background_volume = 0.05)
       sample = self._shift_augment(sample)
     if self.mode == "raw":
       return sample, label
