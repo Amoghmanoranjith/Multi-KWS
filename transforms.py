@@ -8,6 +8,7 @@ import torch
 from torch import Tensor
 from torch.nn.modules.lazy import LazyModuleMixin
 from torch.nn.parameter import UninitializedParameter
+import torchaudio.transforms as T
 
 from torchaudio import functional as F
 from torchaudio.functional.functional import (
