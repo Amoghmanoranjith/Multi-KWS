@@ -97,7 +97,7 @@ def collate_fn(batch):
     for log_mel, label in batch:
         tensors.append(log_mel)
         targets.append(label)
-    # tensors = pad_sequence(tensors)
+    tensors = pad_sequence(tensors)
     targets = torch.LongTensor(targets)
     return tensors, targets
 
