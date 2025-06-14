@@ -86,7 +86,6 @@ def idx_to_label(idx):
     return _idx_to_label[idx]
 
 def pad_sequence(batch):
-    print(batch[0].shape)
     batch = [item.permute(2, 1, 0) for item in batch]
     batch = torch.nn.utils.rnn.pad_sequence(batch, batch_first=True)
     return batch.permute(0, 3, 2, 1)
