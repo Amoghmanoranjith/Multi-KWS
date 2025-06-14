@@ -118,7 +118,8 @@ class SpeechCommand(Dataset):
     self.mode = mode
     self.subset = subset
     self.ver = ver
-    self.noise_dir = "/content/data/speech_commands_v0.02/_background_noise_"
+    noise_dir = os.path.dirname(root_dir)
+    self.noise_dir = os.path.join(noise_dir, "_background_noise_")
     self._noise = []
 
     # load all the noise waveforms for adding to the background
