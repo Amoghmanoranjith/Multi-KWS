@@ -120,7 +120,7 @@ class SpeechCommand(Dataset):
     self.augment = augment
     self.noise_dir = noise_dir
     self._noise = []
-
+    
     # load all the noise waveforms for adding to the background
     for file_name in os.listdir(self.noise_dir):
           if file_name.endswith(".wav"):
@@ -143,6 +143,8 @@ class SpeechCommand(Dataset):
     'num_time_mask': 2,
     'num_freq_mask': 2
     } if augment else None
+    self.min_ratio = 0.85
+    self.max_ratio = 1.15
     if mode == "mfcc":
         self.to_mel = MFCC(
               sample_rate=16000,
@@ -162,7 +164,11 @@ class SpeechCommand(Dataset):
     audio_path = self.data_list[idx]
     sample, sample_rate = torchaudio.load(audio_path)
     label = self.labels[idx]
-
+    # apply resampling if augmentation allowed
+    if self.augment:
+        ratio = random.uniform(self.min_ratio, self.max_ratio)
+        new_sr = int(SAMPLE_RATE * ratio)
+        sample = transforms.Resample(orig_freq=sample_rate, new_freq=new_sr)
     if sample_rate != SAMPLE_RATE:
       resampler = transforms.Resample(orig_freq=sample_rate, new_freq=SAMPLE_RATE)
       waveform = resampler(waveform)
