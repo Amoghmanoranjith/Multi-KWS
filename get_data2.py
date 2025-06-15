@@ -16,8 +16,8 @@ import torchaudio
 import torchaudio.transforms as T
 from torch.utils.data import DataLoader
 from torch.utils.data import Dataset
-from torchvision import transforms
-from transforms import MFCC, MelSpectrogram
+from torchaudio import transforms
+from transform_utils import MFCC, MelSpectrogram
 
 label_dict = {
     "_silence_": 0,
