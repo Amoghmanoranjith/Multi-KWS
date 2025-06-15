@@ -168,9 +168,9 @@ class SpeechCommand(Dataset):
     if self.augment:
         ratio = random.uniform(self.min_ratio, self.max_ratio)
         new_sr = int(SAMPLE_RATE * ratio)
-        sample = transforms.Resample(orig_freq=sample_rate, new_freq=new_sr)
+        sample = torchaudio.functional.resample(orig_freq=sample_rate, new_freq=new_sr)
     if sample_rate != SAMPLE_RATE:
-      resampler = transforms.Resample(orig_freq=sample_rate, new_freq=SAMPLE_RATE)
+      resampler = torchaudio.functional.resample(orig_freq=sample_rate, new_freq=SAMPLE_RATE)
       waveform = resampler(waveform)
     if self.augment:
         # add background sound
