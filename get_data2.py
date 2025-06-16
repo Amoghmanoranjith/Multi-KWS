@@ -168,10 +168,11 @@ class SpeechCommand(Dataset):
     if self.augment:
         ratio = random.uniform(self.min_ratio, self.max_ratio)
         new_sr = int(SAMPLE_RATE * ratio)
-        sample = torchaudio.functional.resample(orig_freq=sample_rate, new_freq=new_sr)
-    if sample_rate != SAMPLE_RATE:
-      resampler = torchaudio.functional.resample(orig_freq=sample_rate, new_freq=SAMPLE_RATE)
-      waveform = resampler(waveform)
+        resampler = transforms.Resample(orig_freq=sample_rate, new_freq=SAMPLE_RATE)
+        sample = resampler(sample)
+    if sample_rate != SAMPLE_RATE: 
+        resampler = transforms.Resample(orig_freq=sample_rate, new_freq=SAMPLE_RATE)
+        sample = resampler(sample)
     if self.augment:
         # add background sound
       sample = self._noise_augment(sample, foreground_volume = 1.0, background_volume = 0.1)
@@ -230,21 +231,48 @@ def make_empty_audio(loc, num):
 
 
 def make_12class_dataset(base, target):
-    os.mkdir(target)
-    os.mkdir(target + "/_unknown_")
+    os.makedirs(target, exist_ok=True)
+    unknown_dir = os.path.join(target, "_unknown_")
+    os.makedirs(unknown_dir, exist_ok=True)
+
     class10 = ["down", "go", "left", "no", "off", "on", "right", "stop", "up", "yes"]
-    for clsdir in tqdm(glob(os.path.join(base, "*")), desc="Processing classes"):
-        class_name = os.path.basename(clsdir)
-        if class_name in class10:
-            target_dir = os.path.join(target, class_name)
-            shutil.copytree(clsdir, target_dir)
-        else:
-            for file_path in glob(os.path.join(clsdir, "*")):
-                filename = os.path.basename(file_path)
-                target_dir = os.path.join(target, "_unknown_")
-                os.makedirs(target_dir, exist_ok=True)
-                target_file = os.path.join(target_dir, class_name + "_" + filename)
-                shutil.copy(file_path, target_file)
+    unknown_classes = [
+        'visual', 'wow', 'learn', 'backward', 'dog', 'two', 'happy', 'nine', 'bed', 'one', 'zero', 'tree',
+        'seven', 'on', 'four', 'bird', 'eight', 'six', 'forward', 'house', 'marvin', 'sheila', 'five', 'three',
+        'cat', 'follow'
+    ]
+
+    class_counts = []
+    for cls in tqdm(class10, desc="Copying 10 classes"):
+        src_dir = os.path.join(base, cls)
+        dst_dir = os.path.join(target, cls)
+        shutil.copytree(src_dir, dst_dir)
+        class_counts.append(len(glob(os.path.join(src_dir, "*.wav"))))
+
+    # Step 2: Determine average count
+    avg_count = sum(class_counts) // len(class_counts)
+    per_unknown_class_count = avg_count // len(unknown_classes)
+    print(f"Average sample count for labeled classes: {avg_count}")
+    print(f"Sampling {per_unknown_class_count} from each unknown class")
+
+    # Step 3: Sample equal number from each unknown class
+    selected_unknowns = []
+    for cls in tqdm(unknown_classes, desc="Sampling unknown classes"):
+        src_dir = os.path.join(base, cls)
+        if not os.path.exists(src_dir):
+            continue
+        files = glob(os.path.join(src_dir, "*.wav"))
+        random.shuffle(files)
+        selected = files[:per_unknown_class_count]
+        selected_unknowns.extend([(cls, f) for f in selected])
+
+    # Step 4: Copy to _unknown_ folder
+    for class_name, file_path in tqdm(selected_unknowns, desc="Copying unknown samples"):
+        filename = os.path.basename(file_path)
+        target_file = os.path.join(unknown_dir, f"{class_name}_{filename}")
+        shutil.copy(file_path, target_file)
+
+    print(f"Final _unknown_ count: {len(selected_unknowns)}")
 
 def split_data(base, target, valid_list, test_list):
     with open(valid_list, "r") as f:
