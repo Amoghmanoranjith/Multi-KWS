@@ -861,6 +861,7 @@ class DynamicTanh(Module):
         init_alpha = 1.,
         gamma = 1.,
         beta = 0.,
+        unit_offset = False
     ):
         super().__init__()
         self.alpha = nn.Parameter(torch.ones(1) * init_alpha)  # Learnable scaling factor
