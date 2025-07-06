@@ -861,24 +861,14 @@ class DynamicTanh(Module):
         init_alpha = 1.,
         gamma = 1.,
         beta = 0.,
-        unit_offset = False
     ):
         super().__init__()
-        self.pre_tanh_scale = nn.Parameter(tensor(init_alpha))
-
+        self.alpha = nn.Parameter(torch.ones(1) * init_alpha)  # Learnable scaling factor
         self.gamma = nn.Parameter(torch.ones(dim))
         self.beta = nn.Parameter(torch.zeros(dim))
 
-        self.pre_tanh_scale_offset = init_alpha if unit_offset else 0.
-        self.gamma_offset = float(unit_offset)
-
-        nn.init.constant_(self.pre_tanh_scale, 0 if unit_offset else init_alpha)
-        nn.init.constant_(self.gamma, 1. - float(unit_offset))
-
     def forward(self, x):
-        pre_tanh_scale = self.pre_tanh_scale + self.pre_tanh_scale_offset
-        gamma = self.gamma + self.gamma_offset
-        return (x * pre_tanh_scale).tanh() * gamma + self.beta
+        return self.gamma * torch.tanh(self.alpha * x) + self.beta
 
 # residual and residual gates
 
