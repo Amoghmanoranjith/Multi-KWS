@@ -28,7 +28,7 @@ from attend import Attend, Intermediates
 import einx
 from einops.layers.torch import Rearrange
 from einops import rearrange, repeat, reduce, pack, unpack
-from quatOps import QuaternionLinearFunction
+from quatOps import QuaternionLinearFunction, quaternion_init, unitary_init, affect_init
 
 # einstein notation
 
