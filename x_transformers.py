@@ -2040,6 +2040,7 @@ class AttentionLayers(Module):
         use_rmsnorm = False,
         use_dynamic_tanh = False,
         dynamic_tanh_init_alpha = 1.,
+        quat_mode = False,
         use_simple_rmsnorm = False,
         use_adaptive_layernorm = False,
         use_adaptive_rmsnorm = False,
@@ -2117,11 +2118,13 @@ class AttentionLayers(Module):
         self.dim = dim
         self.causal = causal
         self.layers = ModuleList([])
-
         # routing related
         # 1. greater than one residual stream, proposed in Hyper-Connections paper https://arxiv.org/abs/2409.19606
         # 2. integrating more than one past layer, from LIMe paper https://arxiv.org/abs/2502.09245
 
+        # to swtich to quaternion algebra
+        self.quat_mode = quat_mode
+        
         qkv_receive_diff_residuals |= integrate_layers # qkv always receives different views if integrating layers
 
         # hyper connections
@@ -2397,7 +2400,10 @@ class AttentionLayers(Module):
                 is_first_cross_attn = False
 
             elif layer_type == 'f':
-                layer = FeedForward(dim, **ff_kwargs)
+                if self.quat_mode:
+                    layer = QuaternionFeedForward(dim, **ff_kwargs)
+                else:  
+                    layer = FeedForward(dim, **ff_kwargs)
                 layer = layer if not macaron else Scale(0.5, layer)
 
             else:
