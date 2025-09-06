@@ -13,6 +13,8 @@ from torch import nn, einsum, tensor, Tensor, cat, stack, arange, is_tensor
 from torch.utils._pytree import tree_flatten, tree_unflatten
 from torch.nn import Module, ModuleList, ModuleDict, Parameter
 
+import numpy as np
+
 from functools import partial, wraps
 from collections import namedtuple
 from contextlib import nullcontext
